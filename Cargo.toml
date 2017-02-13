@@ -1,0 +1,6 @@
+[package]
+name = "rsbot"
+version = "0.1.0"
+authors = ["Chris Stankus <cdstankus@gmail.com>"]
+
+[dependencies]
