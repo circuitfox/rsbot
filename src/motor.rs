@@ -1,6 +1,16 @@
 use sysfs_gpio as gpio;
 use sysfs_gpio::Pin;
 
+macro_rules! gpio_out {
+    ($gpio:ident, $pin: expr) => (
+        let $gpio = Pin::new($pin);
+        $gpio.with_exported(|| {
+            $gpio.set_direction(gpio::Direction::Out)?;
+            Ok(())
+        })?;
+    )
+}
+
 #[derive(Debug)]
 pub struct Controller {
     enable_a: Pin,
@@ -24,21 +34,20 @@ impl Controller {
     // consider our own error type here?
     pub fn new(enable_a: u64, in_a1: u64, in_a2: u64,
                enable_b: u64, in_b1: u64, in_b2: u64) -> gpio::Result<Controller> {
-        let controller = Controller {
-            enable_a: Pin::new(enable_a),
-            in_a1: Pin::new(in_a1),
-            in_a2: Pin::new(in_a2),
-            enable_b: Pin::new(enable_b),
-            in_b1: Pin::new(in_b1),
-            in_b2: Pin::new(in_b2),
-        };
-        controller.enable_a.set_direction(gpio::Direction::Out)?;
-        controller.in_a1.set_direction(gpio::Direction::Out)?;
-        controller.in_a2.set_direction(gpio::Direction::Out)?;
-        controller.enable_b.set_direction(gpio::Direction::Out)?;
-        controller.in_b1.set_direction(gpio::Direction::Out)?;
-        controller.in_b2.set_direction(gpio::Direction::Out)?;
-        Ok(controller)
+        gpio_out!(enable_a, enable_a);
+        gpio_out!(in_a1, in_a1);
+        gpio_out!(in_a2, in_a2);
+        gpio_out!(enable_b, enable_b);
+        gpio_out!(in_b1, in_b1);
+        gpio_out!(in_b2, in_b2);
+        Ok(Controller {
+            enable_a: enable_a,
+            in_a1: in_a1,
+            in_a2: in_a2,
+            enable_b: enable_b,
+            in_b1: in_b1,
+            in_b2: in_b2,
+        })
     }
 
     pub fn enable(&self, device: Device) -> gpio::Result<()> {
