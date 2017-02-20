@@ -1,12 +1,12 @@
-// The 50ms delay is required to allow permissions to be changed on the exported pins.
+// The 200ms delay is required to allow permissions to be changed on the exported pins.
 macro_rules! gpio_export {
     ($s: ident, {$($gpio:ident),+}) => ({
-            use std::thread;
-            use std::time;
-            $(
-                $s.$gpio.export()?;
-            )+
-            thread::sleep(time::Duration::from_millis(50));
+        use std::thread;
+        use std::time;
+        $(
+            $s.$gpio.export()?;
+        )+
+        thread::sleep(time::Duration::from_millis(200));
     });
 }
 
