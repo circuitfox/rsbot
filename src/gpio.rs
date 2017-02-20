@@ -13,8 +13,16 @@ macro_rules! gpio_export {
 // TODO: Log any Errors
 macro_rules! gpio_unexport {
     ($s: ident, {$($gpio:ident),+}) => ({
-            $(
-                $s.$gpio.unexport().ok();
-             )+
+        $(
+            $s.$gpio.unexport().ok();
+        )+
+    });
+}
+
+macro_rules! gpio_out {
+    ($s: ident, {$($gpio:ident),+}) => ({
+        $(
+            $s.$gpio.set_direction(gpio::Direction::Out)?;
+        )+
     });
 }

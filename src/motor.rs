@@ -42,6 +42,7 @@ impl Controller {
             in_b2: Pin::new(in_b2),
         };
         gpio_export!(controller, { enable_a, in_a1, in_a2, enable_b, in_b1, in_b2 });
+        gpio_out!(controller, { enable_a, in_a1, in_a2, enable_b, in_b1, in_b2 });
         Ok(controller)
     }
 
