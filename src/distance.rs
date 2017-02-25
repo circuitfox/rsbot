@@ -4,6 +4,8 @@ use std::time;
 use sysfs_gpio as gpio;
 use sysfs_gpio::Pin;
 
+use super::Result;
+
 const SOUND_SPEED_CM: u64 = 34300;
 
 pub struct Sensor {
@@ -18,7 +20,7 @@ impl Drop for Sensor {
 }
 
 impl Sensor {
-    pub fn new(trigger: u64, echo: u64) -> gpio::Result<Sensor> {
+    pub fn new(trigger: u64, echo: u64) -> Result<Sensor> {
         let sensor = Sensor {
             trigger: Pin::new(trigger),
             echo: Pin::new(echo)
@@ -29,7 +31,7 @@ impl Sensor {
         Ok(sensor)
     }
     
-    pub fn value(&self) -> gpio::Result<f32> {
+    pub fn value(&self) -> Result<f32> {
         // 10μs pulse
         self.trigger.set_value(1)?;
         thread::sleep(time::Duration::new(0, 10000));

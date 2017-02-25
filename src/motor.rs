@@ -3,6 +3,9 @@ use std::ops::Drop;
 use sysfs_gpio as gpio;
 use sysfs_gpio::Pin;
 
+use error;
+use super::Result;
+
 #[derive(Debug)]
 pub struct Controller {
     enable_a: Pin,
@@ -32,7 +35,7 @@ impl Drop for Controller {
 impl Controller {
     // consider our own error type here?
     pub fn new(enable_a: u64, in_a1: u64, in_a2: u64,
-               enable_b: u64, in_b1: u64, in_b2: u64) -> gpio::Result<Controller> {
+               enable_b: u64, in_b1: u64, in_b2: u64) -> Result<Controller> {
         let controller = Controller {
             enable_a: Pin::new(enable_a),
             in_a1: Pin::new(in_a1),
@@ -46,21 +49,21 @@ impl Controller {
         Ok(controller)
     }
 
-    pub fn enable(&self, device: Device) -> gpio::Result<()> {
+    pub fn enable(&self, device: Device) -> Result<()> {
         match device {
-            Device::A => self.enable_a.set_value(1),
-            Device::B => self.enable_b.set_value(1)
+            Device::A => self.enable_a.set_value(1).map_err(error::Error::from),
+            Device::B => self.enable_b.set_value(1).map_err(error::Error::from)
         }
     }
 
-    pub fn disable(&self, device: Device) -> gpio::Result<()> {
+    pub fn disable(&self, device: Device) -> Result<()> {
         match device {
-            Device::A => self.enable_a.set_value(0),
-            Device::B => self.enable_b.set_value(0)
+            Device::A => self.enable_a.set_value(0).map_err(error::Error::from),
+            Device::B => self.enable_b.set_value(0).map_err(error::Error::from)
         }
     }
 
-    pub fn set_direction(&self, device: Device, direction: Direction) -> gpio::Result<()> {
+    pub fn set_direction(&self, device: Device, direction: Direction) -> Result<()> {
         match direction {
             Direction::Forward => match device {
                 Device::A => self.set_forward(Device::A),
@@ -73,7 +76,7 @@ impl Controller {
         }
     }
 
-    fn set_forward(&self, device: Device) -> gpio::Result<()> {
+    fn set_forward(&self, device: Device) -> Result<()> {
         match device {
             Device::A => {
                 self.in_a1.set_value(1)?;
@@ -88,7 +91,7 @@ impl Controller {
         }
     }
 
-    fn set_reverse(&self, device: Device) -> gpio::Result<()> {
+    fn set_reverse(&self, device: Device) -> Result<()> {
         match device {
             Device::A => {
                 self.in_a1.set_value(0)?;
