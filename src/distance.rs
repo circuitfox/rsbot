@@ -8,6 +8,7 @@ use super::Result;
 
 const SOUND_SPEED_CM: u64 = 34300;
 
+#[derive(Debug)]
 pub struct Sensor {
     trigger: Pin,
     echo: Pin
@@ -15,17 +16,16 @@ pub struct Sensor {
 
 impl Drop for Sensor {
     fn drop(&mut self) {
-        gpio_unexport!(self, { trigger, echo });
+        gpio_unexport!(self, {trigger, echo});
     }
 }
 
 impl Sensor {
-    pub fn new(trigger: u64, echo: u64) -> Result<Sensor> {
+    pub fn new(trigger: Pin, echo: Pin) -> Result<Sensor> {
         let sensor = Sensor {
-            trigger: Pin::new(trigger),
-            echo: Pin::new(echo)
+            trigger: trigger,
+            echo: echo
         };
-        gpio_export!(sensor, { trigger, echo });
         sensor.trigger.set_direction(gpio::Direction::Out)?;
         sensor.echo.set_direction(gpio::Direction::In)?;
         Ok(sensor)

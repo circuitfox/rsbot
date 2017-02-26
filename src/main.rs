@@ -4,9 +4,9 @@ use std::result;
 
 #[macro_use]
 mod gpio;
-pub mod distance;
+mod distance;
 mod error;
-pub mod motor;
+mod motor;
 
 type Result<T> = result::Result<T, error::Error>;
 
