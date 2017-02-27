@@ -4,6 +4,9 @@ use std::result;
 
 #[macro_use]
 mod gpio;
+
+pub mod controller;
+
 mod distance;
 mod error;
 mod motor;
