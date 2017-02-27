@@ -1,5 +1,3 @@
-use sysfs_gpio as gpio;
-
 use distance;
 use motor;
 
@@ -14,5 +12,5 @@ pub struct Controller {
     front_distance_sensor: distance::Sensor,
     rear_distance_sensor: distance::Sensor,
     left_distance_sensor: distance::Sensor,
-    right_distance_sensor: distance::Sensor
+    right_distance_sensor: distance::Sensor,
 }

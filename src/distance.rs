@@ -11,7 +11,7 @@ const SOUND_SPEED_CM: u64 = 34300;
 #[derive(Debug)]
 pub struct Sensor {
     trigger: Pin,
-    echo: Pin
+    echo: Pin,
 }
 
 impl Drop for Sensor {
@@ -24,13 +24,13 @@ impl Sensor {
     pub fn new(trigger: Pin, echo: Pin) -> Result<Sensor> {
         let sensor = Sensor {
             trigger: trigger,
-            echo: echo
+            echo: echo,
         };
         sensor.trigger.set_direction(gpio::Direction::Out)?;
         sensor.echo.set_direction(gpio::Direction::In)?;
         Ok(sensor)
     }
-    
+
     pub fn value(&self) -> Result<f32> {
         // 10μs pulse
         self.trigger.set_value(1)?;
@@ -46,8 +46,8 @@ impl Sensor {
             pulse_end = time::Instant::now();
         }
         let travel_dur = pulse_end.duration_since(pulse_start);
-        let travel_time = (travel_dur.as_secs() as f32 +
-                           (travel_dur.subsec_nanos() as f32) / 1000000000f32) / 2f32;
+        let travel_time = travel_dur.as_secs() as f32 +
+                          travel_dur.subsec_nanos() as f32 / 1e9f32 / 2f32;
         Ok(travel_time * SOUND_SPEED_CM as f32)
     }
 }

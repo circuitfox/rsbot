@@ -23,7 +23,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::Gpio(ref err) => err.fmt(f),
-            Error::Build(ref err) => err.fmt(f)
+            Error::Build(ref err) => err.fmt(f),
         }
     }
 }
@@ -32,14 +32,14 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Gpio(ref err) => err.description(),
-            Error::Build(ref err) => err.description()
+            Error::Build(ref err) => err.description(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
             Error::Gpio(ref err) => Some(err),
-            Error::Build(ref err) => Some(err)
+            Error::Build(ref err) => Some(err),
         }
     }
 }

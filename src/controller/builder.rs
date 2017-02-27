@@ -1,6 +1,3 @@
-use std::thread;
-use std::time;
-
 use sysfs_gpio as gpio;
 
 use distance;
@@ -22,18 +19,18 @@ macro_rules! build {
 #[derive(Debug, Default)]
 pub struct Builder {
     front_enable_a: Option<gpio::Pin>,
-    front_in_a1: Option<gpio::Pin>, 
-    front_in_a2: Option<gpio::Pin>, 
+    front_in_a1: Option<gpio::Pin>,
+    front_in_a2: Option<gpio::Pin>,
     front_enable_b: Option<gpio::Pin>,
-    front_in_b1: Option<gpio::Pin>, 
-    front_in_b2: Option<gpio::Pin>, 
+    front_in_b1: Option<gpio::Pin>,
+    front_in_b2: Option<gpio::Pin>,
 
     rear_enable_a: Option<gpio::Pin>,
-    rear_in_a1: Option<gpio::Pin>, 
-    rear_in_a2: Option<gpio::Pin>, 
+    rear_in_a1: Option<gpio::Pin>,
+    rear_in_a2: Option<gpio::Pin>,
     rear_enable_b: Option<gpio::Pin>,
-    rear_in_b1: Option<gpio::Pin>, 
-    rear_in_b2: Option<gpio::Pin>, 
+    rear_in_b1: Option<gpio::Pin>,
+    rear_in_b2: Option<gpio::Pin>,
 
     front_trigger: Option<gpio::Pin>,
     front_echo: Option<gpio::Pin>,
@@ -46,7 +43,6 @@ pub struct Builder {
 
     right_trigger: Option<gpio::Pin>,
     right_echo: Option<gpio::Pin>,
-    
 }
 
 impl Builder {
@@ -54,8 +50,14 @@ impl Builder {
         Builder::default()
     }
 
-    pub fn front_motor_pins(mut self, enable_a: u64, in_a1: u64, in_a2: u64,
-                            enable_b: u64, in_b1: u64, in_b2: u64) -> Self {
+    pub fn front_motor_pins(mut self,
+                            enable_a: u64,
+                            in_a1: u64,
+                            in_a2: u64,
+                            enable_b: u64,
+                            in_b1: u64,
+                            in_b2: u64)
+                            -> Self {
         self.front_enable_a = Some(gpio::Pin::new(enable_a));
         self.front_in_a1 = Some(gpio::Pin::new(in_a1));
         self.front_in_a2 = Some(gpio::Pin::new(in_a2));
@@ -65,8 +67,14 @@ impl Builder {
         self
     }
 
-    pub fn rear_motor_pins(mut self, enable_a: u64, in_a1: u64, in_a2: u64,
-                           enable_b: u64, in_b1: u64, in_b2: u64) -> Self {
+    pub fn rear_motor_pins(mut self,
+                           enable_a: u64,
+                           in_a1: u64,
+                           in_a2: u64,
+                           enable_b: u64,
+                           in_b1: u64,
+                           in_b2: u64)
+                           -> Self {
         self.rear_enable_a = Some(gpio::Pin::new(enable_a));
         self.rear_in_a1 = Some(gpio::Pin::new(in_a1));
         self.rear_in_a2 = Some(gpio::Pin::new(in_a2));
@@ -107,7 +115,7 @@ impl Builder {
             front_trigger, front_echo, rear_trigger, rear_echo,
             left_trigger, left_echo, right_trigger, right_echo
         });
-        
+
         let front_motors = build!(self, motor::Controller, BuilderError::FrontMotorPins,
                                   {front_enable_a, front_in_a1, front_in_a2,
                                    front_enable_b, front_in_b1, front_in_b2});
@@ -132,7 +140,7 @@ impl Builder {
             front_distance_sensor: front_distance_sensor,
             rear_distance_sensor: rear_distance_sensor,
             left_distance_sensor: left_distance_sensor,
-            right_distance_sensor: right_distance_sensor
+            right_distance_sensor: right_distance_sensor,
         })
     }
 }
