@@ -27,25 +27,25 @@ pub enum Direction {
 
 impl Drop for Controller {
     fn drop(&mut self) {
-        gpio_unexport!(self, { enable_a, in_a1, in_a2,
-                               enable_b, in_b1, in_b2 });
+        gpio_unexport!(self, {enable_a, in_a1, in_a2,
+                              enable_b, in_b1, in_b2});
     }
 }
 
 impl Controller {
     // consider our own error type here?
-    pub fn new(enable_a: u64, in_a1: u64, in_a2: u64,
-               enable_b: u64, in_b1: u64, in_b2: u64) -> Result<Controller> {
+    pub fn new(enable_a: Pin, in_a1: Pin, in_a2: Pin,
+               enable_b: Pin, in_b1: Pin, in_b2: Pin) -> Result<Controller> {
         let controller = Controller {
-            enable_a: Pin::new(enable_a),
-            in_a1: Pin::new(in_a1),
-            in_a2: Pin::new(in_a2),
-            enable_b: Pin::new(enable_b),
-            in_b1: Pin::new(in_b1),
-            in_b2: Pin::new(in_b2),
+            enable_a: enable_a,
+            in_a1: in_a1,
+            in_a2: in_a2,
+            enable_b: enable_b,
+            in_b1: in_b1,
+            in_b2: in_b2,
         };
-        gpio_export!(controller, { enable_a, in_a1, in_a2, enable_b, in_b1, in_b2 });
-        gpio_out!(controller, { enable_a, in_a1, in_a2, enable_b, in_b1, in_b2 });
+        gpio_out!(controller, {enable_a, in_a1, in_a2,
+                               enable_b, in_b1, in_b2});
         Ok(controller)
     }
 

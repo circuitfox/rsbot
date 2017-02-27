@@ -1,28 +1,37 @@
 // The 200ms delay is required to allow permissions to be changed on the exported pins.
+/// Exports one or more GPIO pins wrapped in an `Option`.
+///
+/// The specified pins are assumed to be fields of `$p`.
 macro_rules! gpio_export {
-    ($s: ident, {$($gpio:ident),+}) => ({
-        use std::thread;
-        use std::time;
+    ($p: ident, {$($opt_gpio: ident),+}) => ({
         $(
-            $s.$gpio.export()?;
+            if let Some(ref gpio) = $p.$opt_gpio {
+                gpio.export()?;
+            }
         )+
-        thread::sleep(time::Duration::from_millis(200));
+        ::std::thread::sleep(::std::time::Duration::from_millis(200));
     });
 }
 
+/// Unexports one or more GPIO pins.
+///
+/// The specified pins are assumed to be fields of `$p`.
 // TODO: Log any Errors
 macro_rules! gpio_unexport {
-    ($s: ident, {$($gpio:ident),+}) => ({
+    ($p: ident, {$($gpio: ident),+}) => ({
         $(
-            $s.$gpio.unexport().ok();
+            $p.$gpio.unexport().ok();
         )+
     });
 }
 
+/// Sets one or more GPIO pins as outputs.
+///
+/// The specified pins are assumed to be fields of `$p`.
 macro_rules! gpio_out {
-    ($s: ident, {$($gpio:ident),+}) => ({
+    ($p: ident, {$($gpio: ident),+}) => ({
         $(
-            $s.$gpio.set_direction(gpio::Direction::Out)?;
+            $p.$gpio.set_direction(gpio::Direction::Out)?;
         )+
     });
 }
