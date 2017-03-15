@@ -1,3 +1,4 @@
+extern crate retry;
 extern crate sysfs_gpio;
 
 use std::result;
