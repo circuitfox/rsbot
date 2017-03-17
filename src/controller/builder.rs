@@ -1,8 +1,8 @@
+use retry;
 use sysfs_gpio;
 
 use distance;
 use error::{BuilderError, Error};
-use gpio;
 use motor;
 use super::Controller;
 use super::super::Result;
@@ -118,9 +118,7 @@ impl Builder {
         });
 
         // Make sure export is finished
-        if let Some(ref pin) = self.front_enable_a {
-            gpio::poll_pin_init(pin)?;
-        }
+        self.poll_pin_init()?;
 
         let front_motors = build!(self, motor::Controller, BuilderError::FrontMotorPins,
                                   {front_enable_a, front_in_a1, front_in_a2,
@@ -148,5 +146,31 @@ impl Builder {
             left_distance_sensor: left_distance_sensor,
             right_distance_sensor: right_distance_sensor,
         })
+    }
+
+    fn poll_pin_init(&self) -> Result<()> {
+        // Unwrapping is fine here; if this fails, it means is_some is broken.
+        let pins = vec![&self.front_enable_a, &self.front_in_a1, &self.front_in_a2,
+                        &self.front_enable_b, &self.front_in_b1, &self.front_in_b2,
+                        &self.rear_enable_a, &self.rear_in_a1, &self.rear_in_a2,
+                        &self.rear_enable_b, &self.rear_in_b1, &self.rear_in_b2,
+                        &self.front_trigger, &self.front_echo,
+                        &self.rear_trigger, &self.rear_echo,
+                        &self.left_trigger, &self.left_echo,
+                        &self.right_trigger, &self.right_echo]
+            .into_iter()
+            .filter(|pin| pin.is_some())
+            .map(|pin| pin.as_ref().unwrap())
+            .collect::<Vec<_>>();
+        retry::retry(10,
+                     50,
+                     || {
+                         pins.iter()
+                             .map(|pin| pin.set_direction(pin.get_direction()?))
+                             .collect::<Vec<_>>()
+                     },
+                     |rvec| rvec.iter().all(|res| res.is_ok()))
+            .map_err(|_| Error::Build(BuilderError::ExportError))
+            .and_then(|_| Ok(()))
     }
 }

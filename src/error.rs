@@ -69,14 +69,16 @@ impl error::Error for BuilderError {
 
 impl fmt::Display for BuilderError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Builder: {}", match *self {
-            BuilderError::FrontMotorPins => "front motor controller pins not specified",
-            BuilderError::RearMotorPins => "rear motor controller pins not specified",
-            BuilderError::FrontDistancePins => "front distance sensor pins not specified",
-            BuilderError::RearDistancePins => "rear distance sensor pins not specified",
-            BuilderError::LeftDistancePins => "left distance sensor pins not specified",
-            BuilderError::RightDistancePins => "right distance sensor pins not specified",
-            BuilderError::ExportError => "pin export failed",
-        })
+        write!(f,
+               "Builder: {}",
+               match *self {
+                   BuilderError::FrontMotorPins => "front motor controller pins not specified",
+                   BuilderError::RearMotorPins => "rear motor controller pins not specified",
+                   BuilderError::FrontDistancePins => "front distance sensor pins not specified",
+                   BuilderError::RearDistancePins => "rear distance sensor pins not specified",
+                   BuilderError::LeftDistancePins => "left distance sensor pins not specified",
+                   BuilderError::RightDistancePins => "right distance sensor pins not specified",
+                   BuilderError::ExportError => "pin export failed",
+               })
     }
 }
