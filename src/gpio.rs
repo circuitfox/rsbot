@@ -1,7 +1,10 @@
-// The 200ms delay is required to allow permissions to be changed on the exported pins.
 /// Exports one or more GPIO pins wrapped in an `Option`.
 ///
 /// The specified pins are assumed to be fields of `$p`.
+///
+/// After calling this function, the newly exported pins will be owned by root:root
+/// for an unspecified amount of time, before ownership changes to root:gpio,
+/// so `poll_pin_init` should be called afterward to allow ownership to change.
 macro_rules! gpio_export {
     ($p: ident, {$($opt_gpio: ident),+}) => ({
         $(
@@ -9,7 +12,6 @@ macro_rules! gpio_export {
                 gpio.export()?;
             }
         )+
-        ::std::thread::sleep(::std::time::Duration::from_millis(200));
     });
 }
 

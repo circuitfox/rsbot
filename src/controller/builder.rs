@@ -1,4 +1,5 @@
-use sysfs_gpio as gpio;
+use retry;
+use sysfs_gpio;
 
 use distance;
 use error::{BuilderError, Error};
@@ -18,31 +19,31 @@ macro_rules! build {
 // Options are used because there is no clear default for pins
 #[derive(Debug, Default)]
 pub struct Builder {
-    front_enable_a: Option<gpio::Pin>,
-    front_in_a1: Option<gpio::Pin>,
-    front_in_a2: Option<gpio::Pin>,
-    front_enable_b: Option<gpio::Pin>,
-    front_in_b1: Option<gpio::Pin>,
-    front_in_b2: Option<gpio::Pin>,
+    front_enable_a: Option<sysfs_gpio::Pin>,
+    front_in_a1: Option<sysfs_gpio::Pin>,
+    front_in_a2: Option<sysfs_gpio::Pin>,
+    front_enable_b: Option<sysfs_gpio::Pin>,
+    front_in_b1: Option<sysfs_gpio::Pin>,
+    front_in_b2: Option<sysfs_gpio::Pin>,
 
-    rear_enable_a: Option<gpio::Pin>,
-    rear_in_a1: Option<gpio::Pin>,
-    rear_in_a2: Option<gpio::Pin>,
-    rear_enable_b: Option<gpio::Pin>,
-    rear_in_b1: Option<gpio::Pin>,
-    rear_in_b2: Option<gpio::Pin>,
+    rear_enable_a: Option<sysfs_gpio::Pin>,
+    rear_in_a1: Option<sysfs_gpio::Pin>,
+    rear_in_a2: Option<sysfs_gpio::Pin>,
+    rear_enable_b: Option<sysfs_gpio::Pin>,
+    rear_in_b1: Option<sysfs_gpio::Pin>,
+    rear_in_b2: Option<sysfs_gpio::Pin>,
 
-    front_trigger: Option<gpio::Pin>,
-    front_echo: Option<gpio::Pin>,
+    front_trigger: Option<sysfs_gpio::Pin>,
+    front_echo: Option<sysfs_gpio::Pin>,
 
-    rear_trigger: Option<gpio::Pin>,
-    rear_echo: Option<gpio::Pin>,
+    rear_trigger: Option<sysfs_gpio::Pin>,
+    rear_echo: Option<sysfs_gpio::Pin>,
 
-    left_trigger: Option<gpio::Pin>,
-    left_echo: Option<gpio::Pin>,
+    left_trigger: Option<sysfs_gpio::Pin>,
+    left_echo: Option<sysfs_gpio::Pin>,
 
-    right_trigger: Option<gpio::Pin>,
-    right_echo: Option<gpio::Pin>,
+    right_trigger: Option<sysfs_gpio::Pin>,
+    right_echo: Option<sysfs_gpio::Pin>,
 }
 
 impl Builder {
@@ -58,12 +59,12 @@ impl Builder {
                             in_b1: u64,
                             in_b2: u64)
                             -> Self {
-        self.front_enable_a = Some(gpio::Pin::new(enable_a));
-        self.front_in_a1 = Some(gpio::Pin::new(in_a1));
-        self.front_in_a2 = Some(gpio::Pin::new(in_a2));
-        self.front_enable_b = Some(gpio::Pin::new(enable_b));
-        self.front_in_b1 = Some(gpio::Pin::new(in_b1));
-        self.front_in_b2 = Some(gpio::Pin::new(in_b2));
+        self.front_enable_a = Some(sysfs_gpio::Pin::new(enable_a));
+        self.front_in_a1 = Some(sysfs_gpio::Pin::new(in_a1));
+        self.front_in_a2 = Some(sysfs_gpio::Pin::new(in_a2));
+        self.front_enable_b = Some(sysfs_gpio::Pin::new(enable_b));
+        self.front_in_b1 = Some(sysfs_gpio::Pin::new(in_b1));
+        self.front_in_b2 = Some(sysfs_gpio::Pin::new(in_b2));
         self
     }
 
@@ -75,36 +76,36 @@ impl Builder {
                            in_b1: u64,
                            in_b2: u64)
                            -> Self {
-        self.rear_enable_a = Some(gpio::Pin::new(enable_a));
-        self.rear_in_a1 = Some(gpio::Pin::new(in_a1));
-        self.rear_in_a2 = Some(gpio::Pin::new(in_a2));
-        self.rear_enable_b = Some(gpio::Pin::new(enable_b));
-        self.rear_in_b1 = Some(gpio::Pin::new(in_b1));
-        self.rear_in_b2 = Some(gpio::Pin::new(in_b2));
+        self.rear_enable_a = Some(sysfs_gpio::Pin::new(enable_a));
+        self.rear_in_a1 = Some(sysfs_gpio::Pin::new(in_a1));
+        self.rear_in_a2 = Some(sysfs_gpio::Pin::new(in_a2));
+        self.rear_enable_b = Some(sysfs_gpio::Pin::new(enable_b));
+        self.rear_in_b1 = Some(sysfs_gpio::Pin::new(in_b1));
+        self.rear_in_b2 = Some(sysfs_gpio::Pin::new(in_b2));
         self
     }
 
     pub fn front_distance_pins(mut self, trigger: u64, echo: u64) -> Self {
-        self.front_trigger = Some(gpio::Pin::new(trigger));
-        self.front_echo = Some(gpio::Pin::new(echo));
+        self.front_trigger = Some(sysfs_gpio::Pin::new(trigger));
+        self.front_echo = Some(sysfs_gpio::Pin::new(echo));
         self
     }
 
     pub fn rear_distance_pins(mut self, trigger: u64, echo: u64) -> Self {
-        self.rear_trigger = Some(gpio::Pin::new(trigger));
-        self.rear_echo = Some(gpio::Pin::new(echo));
+        self.rear_trigger = Some(sysfs_gpio::Pin::new(trigger));
+        self.rear_echo = Some(sysfs_gpio::Pin::new(echo));
         self
     }
 
     pub fn left_distance_pins(mut self, trigger: u64, echo: u64) -> Self {
-        self.left_trigger = Some(gpio::Pin::new(trigger));
-        self.left_echo = Some(gpio::Pin::new(echo));
+        self.left_trigger = Some(sysfs_gpio::Pin::new(trigger));
+        self.left_echo = Some(sysfs_gpio::Pin::new(echo));
         self
     }
 
     pub fn right_distance_pins(mut self, trigger: u64, echo: u64) -> Self {
-        self.right_trigger = Some(gpio::Pin::new(trigger));
-        self.right_echo = Some(gpio::Pin::new(echo));
+        self.right_trigger = Some(sysfs_gpio::Pin::new(trigger));
+        self.right_echo = Some(sysfs_gpio::Pin::new(echo));
         self
     }
 
@@ -115,6 +116,9 @@ impl Builder {
             front_trigger, front_echo, rear_trigger, rear_echo,
             left_trigger, left_echo, right_trigger, right_echo
         });
+
+        // Make sure export is finished
+        self.poll_pin_init()?;
 
         let front_motors = build!(self, motor::Controller, BuilderError::FrontMotorPins,
                                   {front_enable_a, front_in_a1, front_in_a2,
@@ -142,5 +146,31 @@ impl Builder {
             left_distance_sensor: left_distance_sensor,
             right_distance_sensor: right_distance_sensor,
         })
+    }
+
+    fn poll_pin_init(&self) -> Result<()> {
+        // Unwrapping is fine here; if this fails, it means is_some is broken.
+        let pins = vec![&self.front_enable_a, &self.front_in_a1, &self.front_in_a2,
+                        &self.front_enable_b, &self.front_in_b1, &self.front_in_b2,
+                        &self.rear_enable_a, &self.rear_in_a1, &self.rear_in_a2,
+                        &self.rear_enable_b, &self.rear_in_b1, &self.rear_in_b2,
+                        &self.front_trigger, &self.front_echo,
+                        &self.rear_trigger, &self.rear_echo,
+                        &self.left_trigger, &self.left_echo,
+                        &self.right_trigger, &self.right_echo]
+            .into_iter()
+            .filter(|pin| pin.is_some())
+            .map(|pin| pin.as_ref().unwrap())
+            .collect::<Vec<_>>();
+        retry::retry(10,
+                     50,
+                     || {
+                         pins.iter()
+                             .map(|pin| pin.set_direction(pin.get_direction()?))
+                             .collect::<Vec<_>>()
+                     },
+                     |rvec| rvec.iter().all(|res| res.is_ok()))
+            .map_err(|_| Error::Build(BuilderError::ExportError))
+            .and_then(|_| Ok(()))
     }
 }
