@@ -1,3 +1,5 @@
+extern crate futures;
+extern crate futures_cpupool;
 extern crate retry;
 extern crate sysfs_gpio;
 

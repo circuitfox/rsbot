@@ -1,17 +1,17 @@
+use std::fmt;
 use std::thread;
 use std::time;
 
-use distance;
-use motor;
+use futures_cpupool as cpupool;
 
-use super::Result;
+use distance;
+use error;
+use motor;
 
 mod builder;
 
 pub use self::builder::Builder;
 
-// TODO: split movement and sensing to threads
-#[derive(Debug)]
 pub struct Controller {
     front_motors: motor::Controller,
     rear_motors: motor::Controller,
@@ -19,6 +19,8 @@ pub struct Controller {
     rear_distance_sensor: distance::Sensor,
     left_distance_sensor: distance::Sensor,
     right_distance_sensor: distance::Sensor,
+
+    pool: cpupool::CpuPool,
 }
 
 pub enum Direction {
@@ -28,56 +30,96 @@ pub enum Direction {
     Right,
 }
 
+pub struct DistanceVector {
+    pub distance: f32,
+    pub direction: Direction,
+}
+
+impl Drop for Controller {
+    fn drop(&mut self) {
+        self.front_motors.unexport();
+        self.rear_motors.unexport();
+        self.front_distance_sensor.unexport();
+        self.rear_distance_sensor.unexport();
+        self.left_distance_sensor.unexport();
+        self.right_distance_sensor.unexport();
+    }
+}
+
+impl fmt::Debug for Controller {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Controller")
+            .field("front_motors", &self.front_motors)
+            .field("rear_motors", &self.rear_motors)
+            .field("front_distance_sensor", &self.front_distance_sensor)
+            .field("rear_distance_sensor", &self.rear_distance_sensor)
+            .field("left_distance_sensor", &self.left_distance_sensor)
+            .field("right_distance_sensor", &self.right_distance_sensor)
+            .finish()
+    }
+}
+
 impl Controller {
     // Not sure about the duration parameter, may want to specialize for turning
-    pub fn travel(&mut self, direction: Direction, duration: time::Duration) -> Result<()> {
-        match direction {
-            Direction::Forward => {
-                self.front_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                self.front_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
-                self.rear_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                self.rear_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
+    pub fn travel(&mut self, direction: Direction, duration: time::Duration) -> cpupool::CpuFuture<(), error::Error> {
+        let front_motors = self.front_motors.clone();
+        let rear_motors = self.rear_motors.clone();
+        self.pool.spawn_fn(move || {
+            match direction {
+                Direction::Forward => {
+                    front_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
+                    front_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
+                    rear_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
+                    rear_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
+                }
+                Direction::Backward => {
+                    front_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
+                    front_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
+                    rear_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
+                    rear_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
+                }
+                Direction::Left => {
+                    front_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
+                    front_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
+                    rear_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
+                    rear_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
+                }
+                Direction::Right => {
+                    front_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
+                    front_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
+                    rear_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
+                    rear_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
+                }
             }
-            Direction::Backward => {
-                self.front_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                self.front_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
-                self.rear_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                self.rear_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
-            }
-            Direction::Left => {
-                self.front_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                self.front_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
-                self.rear_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                self.rear_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
-            }
-            Direction::Right => {
-                self.front_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                self.front_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
-                self.rear_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                self.rear_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
-            }
-        }
-        self.front_motors.enable(motor::Device::A)?;
-        self.front_motors.enable(motor::Device::B)?;
-        self.rear_motors.enable(motor::Device::A)?;
-        self.rear_motors.enable(motor::Device::B)?;
+            front_motors.enable(motor::Device::A)?;
+            front_motors.enable(motor::Device::B)?;
+            rear_motors.enable(motor::Device::A)?;
+            rear_motors.enable(motor::Device::B)?;
 
-        // Let the motors move
-        thread::sleep(duration);
+            // Let the motors move
+            thread::sleep(duration);
 
-        self.front_motors.disable(motor::Device::A)?;
-        self.front_motors.disable(motor::Device::B)?;
-        self.rear_motors.disable(motor::Device::A)?;
-        self.rear_motors.disable(motor::Device::B)?;
-        Ok(())
+            front_motors.disable(motor::Device::A)?;
+            front_motors.disable(motor::Device::B)?;
+            rear_motors.disable(motor::Device::A)?;
+            rear_motors.disable(motor::Device::B)?;
+            Ok(())
+        })
     }
 
-    pub fn distance(&mut self, direction: Direction) -> Result<f32> {
-        match direction {
-            Direction::Forward => self.front_distance_sensor.value(),
-            Direction::Backward => self.rear_distance_sensor.value(),
-            Direction::Left => self.left_distance_sensor.value(),
-            Direction::Right => self.right_distance_sensor.value(),
-        }
+    pub fn distance(&mut self, direction: Direction) -> cpupool::CpuFuture<DistanceVector, error::Error> {
+        let sensor =  match direction {
+            Direction::Forward => self.front_distance_sensor.clone(),
+            Direction::Backward => self.rear_distance_sensor.clone(),
+            Direction::Left => self.left_distance_sensor.clone(),
+            Direction::Right => self.right_distance_sensor.clone(),
+        };
+        self.pool.spawn_fn(move || {
+            let distance = sensor.value()?;
+            Ok(DistanceVector {
+                distance: distance,
+                direction: direction
+            })
+        })
     }
 }

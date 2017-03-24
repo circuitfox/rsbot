@@ -1,3 +1,4 @@
+use futures_cpupool;
 use retry;
 use sysfs_gpio;
 
@@ -145,6 +146,8 @@ impl Builder {
             rear_distance_sensor: rear_distance_sensor,
             left_distance_sensor: left_distance_sensor,
             right_distance_sensor: right_distance_sensor,
+
+            pool: futures_cpupool::CpuPool::new_num_cpus(),
         })
     }
 

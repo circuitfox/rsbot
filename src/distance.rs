@@ -8,16 +8,10 @@ use super::Result;
 
 const SOUND_SPEED_CM: u64 = 34300;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Sensor {
     trigger: Pin,
     echo: Pin,
-}
-
-impl Drop for Sensor {
-    fn drop(&mut self) {
-        gpio_unexport!(self, {trigger, echo});
-    }
 }
 
 impl Sensor {
@@ -49,5 +43,11 @@ impl Sensor {
         let travel_time = travel_dur.as_secs() as f32 +
                           travel_dur.subsec_nanos() as f32 / 1e9f32 / 2f32;
         Ok(travel_time * SOUND_SPEED_CM as f32)
+    }
+
+    pub fn unexport(&mut self) {
+        self.trigger.set_value(0).ok();
+        self.echo.set_value(0).ok();
+        gpio_unexport!(self, {trigger, echo})
     }
 }

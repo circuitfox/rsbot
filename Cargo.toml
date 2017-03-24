@@ -4,5 +4,7 @@ version = "0.1.0"
 authors = ["Chris Stankus <cdstankus@gmail.com>"]
 
 [dependencies]
+futures = "0.1.11"
+futures-cpupool = "0.1.5"
 retry = "0.4.0"
 sysfs_gpio = "0.5.0"

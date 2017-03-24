@@ -1,12 +1,10 @@
-use std::ops::Drop;
-
 use sysfs_gpio as gpio;
 use sysfs_gpio::Pin;
 
 use error;
 use super::Result;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Controller {
     enable_a: Pin,
     in_a1: Pin,
@@ -23,13 +21,6 @@ pub enum Device {
 pub enum Direction {
     Forward,
     Reverse,
-}
-
-impl Drop for Controller {
-    fn drop(&mut self) {
-        gpio_unexport!(self, {enable_a, in_a1, in_a2,
-                              enable_b, in_b1, in_b2});
-    }
 }
 
 impl Controller {
@@ -83,6 +74,17 @@ impl Controller {
                 }
             }
         }
+    }
+
+    pub fn unexport(&mut self) {
+        self.enable_a.set_value(0).ok();
+        self.in_a1.set_value(0).ok();
+        self.in_a2.set_value(0).ok();
+        self.enable_b.set_value(0).ok();
+        self.in_b1.set_value(0).ok();
+        self.in_b2.set_value(0).ok();
+        gpio_unexport!(self, {enable_a, in_a1, in_a2,
+                              enable_b, in_b1, in_b2})
     }
 
     fn set_forward(&self, device: Device) -> Result<()> {
