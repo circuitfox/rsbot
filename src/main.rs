@@ -10,6 +10,7 @@ mod gpio;
 
 pub mod controller;
 
+mod direction;
 mod distance;
 mod error;
 mod motor;

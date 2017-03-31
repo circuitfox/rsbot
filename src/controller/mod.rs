@@ -4,6 +4,7 @@ use std::time;
 
 use futures_cpupool as cpupool;
 
+use direction::Direction;
 use distance;
 use error;
 use motor;
@@ -21,13 +22,6 @@ pub struct Controller {
     right_distance_sensor: distance::Sensor,
 
     pool: cpupool::CpuPool,
-}
-
-pub enum Direction {
-    Forward,
-    Backward,
-    Left,
-    Right,
 }
 
 pub struct DistanceVector {
@@ -67,28 +61,20 @@ impl Controller {
         self.pool.spawn_fn(move || {
             match direction {
                 Direction::Forward => {
-                    front_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                    front_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
-                    rear_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                    rear_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
+                    front_motors.set_direction(Direction::Forward)?;
+                    rear_motors.set_direction(Direction::Forward)?;
                 }
                 Direction::Backward => {
-                    front_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                    front_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
-                    rear_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                    rear_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
+                    front_motors.set_direction(Direction::Backward)?;
+                    rear_motors.set_direction(Direction::Backward)?;
                 }
                 Direction::Left => {
-                    front_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                    front_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
-                    rear_motors.set_direction(motor::Device::A, motor::Direction::Forward)?;
-                    rear_motors.set_direction(motor::Device::B, motor::Direction::Reverse)?;
+                    front_motors.set_direction(Direction::Left)?;
+                    rear_motors.set_direction(Direction::Left)?;
                 }
                 Direction::Right => {
-                    front_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                    front_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
-                    rear_motors.set_direction(motor::Device::A, motor::Direction::Reverse)?;
-                    rear_motors.set_direction(motor::Device::B, motor::Direction::Forward)?;
+                    front_motors.set_direction(Direction::Right)?;
+                    rear_motors.set_direction(Direction::Right)?;
                 }
             }
             front_motors.enable(motor::Device::A)?;

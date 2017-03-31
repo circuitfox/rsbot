@@ -1,6 +1,7 @@
 use sysfs_gpio as gpio;
 use sysfs_gpio::Pin;
 
+use direction::Direction;
 use error;
 use super::Result;
 
@@ -17,10 +18,6 @@ pub struct Controller {
 pub enum Device {
     A,
     B,
-}
-pub enum Direction {
-    Forward,
-    Reverse,
 }
 
 impl Controller {
@@ -59,19 +56,27 @@ impl Controller {
         }
     }
 
-    pub fn set_direction(&self, device: Device, direction: Direction) -> Result<()> {
+    pub fn set_direction(&self, direction: Direction) -> Result<()> {
         match direction {
             Direction::Forward => {
-                match device {
-                    Device::A => self.set_forward(Device::A),
-                    Device::B => self.set_forward(Device::B),
-                }
+                self.set_forward(Device::A)?;
+                self.set_forward(Device::B)?;
+                Ok(())
             }
-            Direction::Reverse => {
-                match device {
-                    Device::A => self.set_reverse(Device::A),
-                    Device::B => self.set_reverse(Device::B),
-                }
+            Direction::Backward => {
+                self.set_reverse(Device::A)?;
+                self.set_reverse(Device::B)?;
+                Ok(())
+            }
+            Direction::Left => {
+                self.set_forward(Device::A)?;
+                self.set_reverse(Device::B)?;
+                Ok(())
+            }
+            Direction::Right => {
+                self.set_reverse(Device::A)?;
+                self.set_forward(Device::B)?;
+                Ok(())
             }
         }
     }
