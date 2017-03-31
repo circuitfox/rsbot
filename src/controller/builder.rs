@@ -162,8 +162,7 @@ impl Builder {
                         &self.left_trigger, &self.left_echo,
                         &self.right_trigger, &self.right_echo]
             .into_iter()
-            .filter(|pin| pin.is_some())
-            .map(|pin| pin.as_ref().unwrap())
+            .filter_map(|pin| pin.as_ref())
             .collect::<Vec<_>>();
         retry::retry(10,
                      50,
