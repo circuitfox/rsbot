@@ -55,7 +55,10 @@ impl fmt::Debug for Controller {
 
 impl Controller {
     // Not sure about the duration parameter, may want to specialize for turning
-    pub fn travel(&mut self, direction: Direction, duration: time::Duration) -> cpupool::CpuFuture<(), error::Error> {
+    pub fn travel(&mut self,
+                  direction: Direction,
+                  duration: time::Duration)
+                  -> cpupool::CpuFuture<(), error::Error> {
         let front_motors = self.front_motors.clone();
         let rear_motors = self.rear_motors.clone();
         self.pool.spawn_fn(move || {
@@ -93,8 +96,10 @@ impl Controller {
         })
     }
 
-    pub fn distance(&mut self, direction: Direction) -> cpupool::CpuFuture<DistanceVector, error::Error> {
-        let sensor =  match direction {
+    pub fn distance(&mut self,
+                    direction: Direction)
+                    -> cpupool::CpuFuture<DistanceVector, error::Error> {
+        let sensor = match direction {
             Direction::Forward => self.front_distance_sensor.clone(),
             Direction::Backward => self.rear_distance_sensor.clone(),
             Direction::Left => self.left_distance_sensor.clone(),
@@ -104,7 +109,7 @@ impl Controller {
             let distance = sensor.value()?;
             Ok(DistanceVector {
                 distance: distance,
-                direction: direction
+                direction: direction,
             })
         })
     }

@@ -18,7 +18,7 @@ impl Map {
         for n in nodes {
             graph.add_node(n);
         }
-        graph.extend_with_edges(edges);     
+        graph.extend_with_edges(edges);
         Map(graph)
     }
 
@@ -71,9 +71,11 @@ impl serde::Serialize for Map {
     {
         let nodes = self.nodes().collect::<Vec<_>>();
         let edges = self.edges()
-            .map(|e| Edge {
-                nodes: (e.source().index() as u32, e.target().index() as u32),
-                weight: e.weight()
+            .map(|e| {
+                Edge {
+                    nodes: (e.source().index() as u32, e.target().index() as u32),
+                    weight: e.weight(),
+                }
             })
             .collect::<Vec<_>>();
         let mut struc = serializer.serialize_struct("Map", 2)?;
@@ -109,7 +111,7 @@ impl serde::Deserialize for Map {
                 match value {
                     "nodes" => Ok(Field::Nodes),
                     "edges" => Ok(Field::Edges),
-                    _ => Err(de::Error::unknown_field(value, FIELDS))
+                    _ => Err(de::Error::unknown_field(value, FIELDS)),
                 }
             }
         }
@@ -143,27 +145,27 @@ impl serde::Deserialize for Map {
                                 return Err(de::Error::duplicate_field("nodes"));
                             }
                             nodes = Some(visitor.visit_value()?);
-                        },
+                        }
                         Field::Edges => {
                             if edges.is_some() {
                                 return Err(de::Error::duplicate_field("edges"));
                             }
                             edges = Some(visitor.visit_value()?);
-                        },
+                        }
                     }
                 }
                 let nodes = match nodes {
                     Some(nodes) => nodes,
-                    None => return Err(de::Error::missing_field("nodes"))
+                    None => return Err(de::Error::missing_field("nodes")),
                 };
                 let edges = match edges {
                     Some(edges) => edges,
-                    None => return Err(de::Error::missing_field("edges"))
+                    None => return Err(de::Error::missing_field("edges")),
                 };
                 Ok(Map::from_nodes_edges(nodes, edges))
             }
         }
 
-        deserializer.deserialize_struct("Map", FIELDS, MapVisitor)       
+        deserializer.deserialize_struct("Map", FIELDS, MapVisitor)
     }
 }
