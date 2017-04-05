@@ -6,5 +6,9 @@ authors = ["Chris Stankus <cdstankus@gmail.com>"]
 [dependencies]
 futures = "0.1.11"
 futures-cpupool = "0.1.5"
+petgraph = "0.4.4"
 retry = "0.4.0"
+serde = "0.9.12"
+serde_derive = "0.9.12"
+serde_json = "0.9.9"
 sysfs_gpio = "0.5.0"

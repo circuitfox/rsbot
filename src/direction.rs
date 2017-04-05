@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Direction {
     Forward,
     Backward,
