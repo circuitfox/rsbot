@@ -1,5 +1,6 @@
 extern crate futures;
 extern crate futures_cpupool;
+extern crate pathfinding;
 extern crate petgraph;
 extern crate retry;
 extern crate serde;

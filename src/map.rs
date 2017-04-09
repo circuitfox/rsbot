@@ -1,7 +1,9 @@
 use std::fmt;
 use std::slice;
 
+use pathfinding::astar;
 use petgraph;
+use petgraph::graph;
 use petgraph::visit::EdgeRef;
 use serde;
 use serde::de;
@@ -26,13 +28,52 @@ impl Map {
         NodeWeights { nodes: self.0.raw_nodes().iter() }
     }
 
-    fn edges(&self) -> petgraph::graph::EdgeReferences<Direction> {
+    fn edges(&self) -> graph::EdgeReferences<Direction> {
         self.0.edge_references()
+    }
+
+    // TODO: Error handling here
+    pub fn path(&self) -> Path {
+        let mut nodes = self.0.node_indices();
+        let first = nodes.next().expect("Non-empty graph");
+        let path = astar(&first, |n| self.neighbors(n), |_| 0, |n| self.0[*n])
+            .expect("No path")
+            .0;
+        Path(path.windows(2)
+            .map(|n| {
+                // If this returns None then our pathing should have failed
+                let edge = self.0.find_edge(n[0], n[1]).expect("Invalid graph");
+                Edge {
+                    nodes: (n[0].index() as u32, n[1].index() as u32),
+                    weight: self.0[edge],
+                }
+            })
+            .collect::<Vec<_>>())
+    }
+
+    fn neighbors(&self, node: &graph::NodeIndex) -> Vec<(graph::NodeIndex, u32)> {
+        let mut neighbors = self.0.neighbors(*node).detach();
+        let mut nvec = vec![];
+        while let Some((edge, target)) = neighbors.next(&self.0) {
+            // We arrive at these edge costs by this calculation:
+            // Moving forward or backward is a single movement action in the given direction
+            // Moving left or right requires two actions: a turn in the given direction,
+            // and then a forward movement
+            let cost = match self.0[edge] {
+                Direction::Forward | Direction::Backward => 1,
+                Direction::Left | Direction::Right => 2,
+            };
+            nvec.push((target, cost));
+        }
+        nvec
     }
 }
 
-#[derive(Serialize, Deserialize)]
-struct Edge<E> {
+#[derive(Debug)]
+pub struct Path(Vec<Edge<Direction>>);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Edge<E> {
     nodes: (u32, u32),
     weight: E,
 }
@@ -44,8 +85,8 @@ impl<E> petgraph::IntoWeightedEdge<E> for Edge<E> {
     }
 }
 
-impl<E> From<petgraph::graph::Edge<E>> for Edge<E> {
-    fn from(edge: petgraph::graph::Edge<E>) -> Self {
+impl<E> From<graph::Edge<E>> for Edge<E> {
+    fn from(edge: graph::Edge<E>) -> Self {
         Edge {
             nodes: (edge.source().index() as u32, edge.target().index() as u32),
             weight: edge.weight,
@@ -54,7 +95,7 @@ impl<E> From<petgraph::graph::Edge<E>> for Edge<E> {
 }
 
 struct NodeWeights<'a, N: 'a> {
-    nodes: slice::Iter<'a, petgraph::graph::Node<N>>,
+    nodes: slice::Iter<'a, graph::Node<N>>,
 }
 
 impl<'a, N> Iterator for NodeWeights<'a, N> {
