@@ -86,6 +86,7 @@ impl Path {
                 }
             }
         }
+        command_vec.push(Command::Stop);
         command_vec
     }
 }
