@@ -9,7 +9,7 @@ use serde;
 use serde::de;
 use serde::ser::SerializeStruct;
 
-use direction::Direction;
+use { Command, Direction };
 
 #[derive(Debug)]
 pub struct Map(petgraph::Graph<bool, Direction, petgraph::Undirected>);
@@ -71,6 +71,24 @@ impl Map {
 
 #[derive(Debug)]
 pub struct Path(Vec<Edge<Direction>>);
+
+impl Path {
+    pub fn into_commands(self) -> Vec<Command> {
+        let mut command_vec = vec![];
+        for edge in self.0 {
+            match edge.weight {
+                d @ Direction::Forward | d @ Direction::Backward => {
+                    command_vec.push(Command::Move(d));
+                }
+                d @ Direction::Left | d @ Direction::Right => {
+                    command_vec.push(Command::Move(d));
+                    command_vec.push(Command::Move(Direction::Forward));
+                }
+            }
+        }
+        command_vec
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Edge<E> {

@@ -4,7 +4,7 @@ use std::time;
 
 use futures_cpupool as cpupool;
 
-use direction::Direction;
+use Direction;
 use distance;
 use error;
 use motor;

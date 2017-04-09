@@ -1,7 +1,7 @@
 use sysfs_gpio as gpio;
 use sysfs_gpio::Pin;
 
-use direction::Direction;
+use Direction;
 use error;
 use super::Result;
 

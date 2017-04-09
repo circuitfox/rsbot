@@ -16,13 +16,29 @@ mod gpio;
 
 pub mod controller;
 
-mod direction;
 mod distance;
 mod error;
 mod map;
 mod motor;
 
 type Result<T> = result::Result<T, error::Error>;
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum Direction {
+    Forward,
+    Backward,
+    Left,
+    Right,
+}
+
+// Move commands work the following way:
+// Move(Forward|Backward) => move forward or backward until next node
+// Move(Left|Right) => turn 90 degrees in the given direction
+#[derive(Debug)]
+pub enum Command {
+    Move(Direction),
+    Stop,
+}
 
 fn main() {
     println!("Hello, world!");
