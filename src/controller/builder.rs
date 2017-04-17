@@ -4,6 +4,7 @@ use sysfs_gpio;
 
 use distance;
 use error::{BuilderError, Error};
+use map;
 use motor;
 use super::Controller;
 use super::super::Result;
@@ -45,6 +46,8 @@ pub struct Builder {
 
     right_trigger: Option<sysfs_gpio::Pin>,
     right_echo: Option<sysfs_gpio::Pin>,
+
+    map: map::Map,
 }
 
 impl Builder {
@@ -110,6 +113,11 @@ impl Builder {
         self
     }
 
+    pub fn map(mut self, map: map::Map) -> Self {
+        self.map = map;
+        self
+    }
+
     pub fn build(self) -> Result<Controller> {
         gpio_export!(self, {
             front_enable_a, front_in_a1, front_in_a2, front_enable_b, front_in_b1, front_in_b2,
@@ -139,6 +147,7 @@ impl Builder {
         let right_distance_sensor = build!(self, distance::Sensor,
                                            BuilderError::RightDistancePins,
                                            {right_trigger, right_echo});
+        let commands = self.map.path().into_commands();
         Ok(Controller {
             front_motors: front_motors,
             rear_motors: rear_motors,
@@ -148,6 +157,8 @@ impl Builder {
             right_distance_sensor: right_distance_sensor,
 
             pool: futures_cpupool::CpuPool::new_num_cpus(),
+            map: self.map,
+            commands: commands,
         })
     }
 
