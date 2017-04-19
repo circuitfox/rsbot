@@ -70,6 +70,7 @@ impl fmt::Debug for Controller {
 impl Controller {
     pub fn run(&mut self) -> Result<(), error::Error> {
         for command in self.commands.clone() {
+            println!("Running command {:?}", command);
             match command {
                 Command::Move(d) => self.travel(d).wait()?,
                 Command::Stop => {
@@ -261,14 +262,17 @@ fn reach_threshold(pool: &cpupool::CpuPool,
             ThresholdLimit::GreaterThan => while sensor.value()? < threshold {},
             ThresholdLimit::Either => {
                 let value = sensor.value()?;
+                println!("{:?} Distance {}", direction, value);
                 if value > threshold {
                     loop {
                         let v = sensor.value()?;
+                        println!("{:?} Distance {}", direction, v);
                         if v <= threshold { break; }
                     }
                 } else if value < threshold {
                     loop {
                         let v = sensor.value()?;
+                        println!("{:?} Distance {}", direction, v);
                         if v >= threshold { break; }
                     }
                 } else {
