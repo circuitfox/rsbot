@@ -262,11 +262,17 @@ fn reach_threshold(pool: &cpupool::CpuPool,
             ThresholdLimit::Either => {
                 let value = sensor.value()?;
                 if value > threshold {
-                    while value > threshold {}
+                    loop {
+                        let v = sensor.value()?;
+                        if v <= threshold { break; }
+                    }
                 } else if value < threshold {
-                    while value < threshold {}
+                    loop {
+                        let v = sensor.value()?;
+                        if v >= threshold { break; }
+                    }
                 } else {
-                    // We're at the threshold, what luck!
+                    // We're at the threshold, alright!
                 }
             }
         }
