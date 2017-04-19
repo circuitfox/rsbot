@@ -258,8 +258,20 @@ fn reach_threshold(pool: &cpupool::CpuPool,
         // the threshold. A limit greater than the threshold means we want to avoid
         // going above the threshold.
         match limit {
-            ThresholdLimit::LessThan => while sensor.value()? > threshold {},
-            ThresholdLimit::GreaterThan => while sensor.value()? < threshold {},
+            ThresholdLimit::LessThan => {
+                loop {
+                    let value = sensor.value()?;
+                    println!("{:?} Distance {}", direction, value);
+                    if value <= threshold { break; }
+                }
+            }
+            ThresholdLimit::GreaterThan => {
+                loop {
+                    let value = sensor.value()?;
+                    println!("{:?} Distance {}", direction, value);
+                    if value >= threshold { break; }
+                }
+            }
             ThresholdLimit::Either => {
                 let value = sensor.value()?;
                 println!("{:?} Distance {}", direction, value);
