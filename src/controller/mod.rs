@@ -22,6 +22,7 @@ pub use self::builder::Builder;
 enum ThresholdLimit {
     LessThan,
     GreaterThan,
+    Either,
 }
 
 pub struct Controller {
@@ -99,10 +100,6 @@ impl Controller {
         };
         let left_sensor = self.left_distance_sensor.clone();
         let right_sensor = self.right_distance_sensor.clone();
-        let threshold = match direction {
-            Direction::Forward | Direction::Backward => FB_THRESHOLD,
-            Direction::Left | Direction::Right => LR_THRESHOLD,
-        };
         let pool = self.pool.clone();
         self.pool.spawn_fn(move || {
             match direction {
@@ -130,7 +127,19 @@ impl Controller {
 
             match direction {
                 // Simply move until we hit the threshold
-                Direction::Left | Direction::Right => while sensor.value()? > threshold {},
+                Direction::Left | Direction::Right => {
+                    let left = reach_threshold(&pool,
+                                               Direction::Left,
+                                               ThresholdLimit::Either,
+                                               left_sensor);
+                    let right = reach_threshold(&pool,
+                                                Direction::Right,
+                                                ThresholdLimit::Either,
+                                                right_sensor);
+                    left.select(right)
+                        .map_err(|e| e.0)
+                        .wait()?;
+                }
                 // This one is a bit more complex: We need to keep moving until one of the
                 // following is true:
                 // - The front or back sensor hits its threshold
@@ -250,6 +259,16 @@ fn reach_threshold(pool: &cpupool::CpuPool,
         match limit {
             ThresholdLimit::LessThan => while sensor.value()? > threshold {},
             ThresholdLimit::GreaterThan => while sensor.value()? < threshold {},
+            ThresholdLimit::Either => {
+                let value = sensor.value()?;
+                if value > threshold {
+                    while value > threshold {}
+                } else if value < threshold {
+                    while value < threshold {}
+                } else {
+                    // We're at the threshold, what luck!
+                }
+            }
         }
         Ok(())
     })
