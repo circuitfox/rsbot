@@ -1,0 +1,32 @@
+{
+    "nodes": [
+        "false",
+        "false",
+        "false",
+        "false",
+        "false",
+        "true"
+    ],
+    "edges": [
+        {
+            "nodes": [0, 1],
+            "weight": "Forward"
+        },
+        {
+            "nodes": [1, 2],
+            "weight": "Left"
+        },
+        {
+            "nodes": [2, 3],
+            "weight": "Left"
+        },
+        {
+            "nodes": [3, 4],
+            "weight": "Right"
+        },
+        {
+            "nodes": [3, 5],
+            "weight": "Forward"
+        }
+    ]
+}

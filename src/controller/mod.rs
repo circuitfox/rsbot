@@ -262,14 +262,18 @@ fn reach_threshold(pool: &cpupool::CpuPool,
                 loop {
                     let value = sensor.value()?;
                     println!("{:?} Distance {}", direction, value);
-                    if value <= threshold { break; }
+                    if value <= threshold {
+                        break;
+                    }
                 }
             }
             ThresholdLimit::GreaterThan => {
                 loop {
                     let value = sensor.value()?;
                     println!("{:?} Distance {}", direction, value);
-                    if value >= threshold { break; }
+                    if value >= threshold {
+                        break;
+                    }
                 }
             }
             ThresholdLimit::Either => {
@@ -279,13 +283,17 @@ fn reach_threshold(pool: &cpupool::CpuPool,
                     loop {
                         let v = sensor.value()?;
                         println!("{:?} Distance {}", direction, v);
-                        if v <= threshold { break; }
+                        if v <= threshold {
+                            break;
+                        }
                     }
                 } else if value < threshold {
                     loop {
                         let v = sensor.value()?;
                         println!("{:?} Distance {}", direction, v);
-                        if v >= threshold { break; }
+                        if v >= threshold {
+                            break;
+                        }
                     }
                 } else {
                     // We're at the threshold, alright!

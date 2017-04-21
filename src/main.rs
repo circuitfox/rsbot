@@ -10,6 +10,9 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate sysfs_gpio;
 
+use std::env;
+use std::fs;
+use std::path::Path;
 use std::result;
 
 #[macro_use]
@@ -42,41 +45,26 @@ pub enum Command {
 }
 
 fn main() {
-    println!("Hello, world!");
-    let map: map::Map = serde_json::from_value(json!({
-        "nodes": [
-            "false",
-            "false",
-            "false",
-            "false",
-            "false",
-            "true"
-        ],
-        "edges": [
-            {
-                "nodes": [0, 1],
-                "weight": "Forward",
-            },
-            {
-                "nodes": [1, 2],
-                "weight": "Left",
-            },
-            {
-                "nodes": [2, 3],
-                "weight": "Left",
-            },
-            {
-                "nodes": [3, 4],
-                "weight": "Right",
-            },
-            {
-                "nodes": [3, 5],
-                "weight": "Forward",
-            }
-        ]
-    }))
-        .unwrap();
+    let mapfile = env::args().nth(1).expect("Need a link to a map file");
+    let map = read_map(mapfile).unwrap();
     println!("{:?}", map);
     println!("{:#?}", map.path());
     println!("{:#?}", map.path().into_commands());
+    let controller = controller::Builder::new()
+        .front_motor_pins(2, 3, 4, 22, 17, 27)
+        .rear_motor_pins(10, 9, 11, 19, 5, 6)
+        .front_distance_pins(14, 15)
+        .rear_distance_pins(18, 23)
+        .left_distance_pins(24, 25)
+        .right_distance_pins(8, 7)
+        .map(map)
+        .build()
+        .unwrap();
+    controller.run().unwrap();
+}
+
+fn read_map<P: AsRef<Path>>(path: P) -> serde_json::Result<map::Map> {
+    let file = fs::File::open(path)?;
+    let map = serde_json::from_reader(file)?;
+    Ok(map)
 }
