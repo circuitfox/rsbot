@@ -50,7 +50,7 @@ fn main() {
     println!("{:?}", map);
     println!("{:#?}", map.path());
     println!("{:#?}", map.path().into_commands());
-    let controller = controller::Builder::new()
+    let mut controller = controller::Builder::new()
         .front_motor_pins(2, 3, 4, 22, 17, 27)
         .rear_motor_pins(10, 9, 11, 19, 5, 6)
         .front_distance_pins(14, 15)

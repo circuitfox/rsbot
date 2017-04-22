@@ -31,14 +31,10 @@ impl Sensor {
         thread::sleep(time::Duration::new(0, 10000));
         self.trigger.set_value(0)?;
 
-        let mut pulse_start = time::Instant::now();
-        let mut pulse_end = time::Instant::now();
-        while self.echo.get_value()? == 0 {
-            pulse_start = time::Instant::now();
-        }
-        while self.echo.get_value()? == 1 {
-            pulse_end = time::Instant::now();
-        }
+        while self.echo.get_value()? == 0 {}
+        let pulse_start = time::Instant::now();
+        while self.echo.get_value()? == 1 {}
+        let pulse_end = time::Instant::now();
         let travel_dur = pulse_end.duration_since(pulse_start);
         let travel_time = travel_dur.as_secs() as f32 +
                           travel_dur.subsec_nanos() as f32 / 1e9f32 / 2f32;
