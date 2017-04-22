@@ -160,15 +160,22 @@ impl Controller {
                                                 right_sensor);
                     // Select2 will wait for either one of the futures in select to finish, or for
                     // right to finish.
-                    primary.select(left)
+                    let thresh_dir = primary.select(left)
                         .select2(right)
-                        .map_err(|e| match e {
+                        .map(|either| match either {
+                            // Type A is (Direction, SelectNext)
+                            // Type B is Direction
+                            future::Either::A((d, _)) => d.0,
+                            future::Either::B((d, _)) => d,
+                        })
+                        .map_err(|either| match either {
                             // type of A is (error::Error, SelectNext)
                             // type of B is error::Error
                             future::Either::A((e, _)) => e.0,
                             future::Either::B((e, _)) => e,
                         })
                         .wait()?;
+                    println!("Threshold reached in {:?}", thresh_dir);
                 }
             }
 
@@ -247,7 +254,7 @@ fn reach_threshold(pool: &cpupool::CpuPool,
                    direction: Direction,
                    limit: ThresholdLimit,
                    sensor: distance::Sensor)
-                   -> cpupool::CpuFuture<(), error::Error> {
+                   -> cpupool::CpuFuture<Direction, error::Error> {
 
     let threshold = match direction {
         Direction::Forward | Direction::Backward => FB_THRESHOLD,
@@ -300,6 +307,6 @@ fn reach_threshold(pool: &cpupool::CpuPool,
                 }
             }
         }
-        Ok(())
+        Ok(direction)
     })
 }
